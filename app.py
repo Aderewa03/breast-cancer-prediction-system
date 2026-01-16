@@ -58,6 +58,7 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(233, 30, 99, 0.1);
         border: 2px solid #F8BBD0;
         margin-bottom: 2rem;
+        margin-top: 0 !important;
     }
     
     /* Section headers */
@@ -68,17 +69,6 @@ st.markdown("""
         margin-bottom: 1.5rem;
         padding-bottom: 0.5rem;
         border-bottom: 3px solid #E91E63;
-    }
-    
-    /* Warning box */
-    .warning-box {
-        background: #FFF3E0;
-        border-left: 4px solid #FF9800;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1.5rem;
-        color: #E65100;
-        font-size: 0.9rem;
     }
     
     /* Input labels */
@@ -224,10 +214,48 @@ st.markdown("""
         }
     }
     
-    /* Hide Streamlit branding */
+    /* Hide Streamlit branding and menu */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    
+    /* Hide hamburger menu completely */
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    
+    [data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
+    [data-testid="stDecoration"] {
+        display: none !important;
+    }
+    
+    /* Remove top space from hidden header */
+    .stApp > header {
+        background-color: transparent !important;
+        height: 0 !important;
+    }
+    
+    /* Adjust spacing */
+    .block-container {
+        padding-top: 1rem !important;
+    }
+    
+    /* Remove white space between sections */
+    .stMarkdown + .stMarkdown {
+        margin-top: 0 !important;
+    }
+    
+    div[data-testid="stVerticalBlock"] > div {
+        gap: 0.5rem !important;
+    }
+    
+    /* Tighten element spacing */
+    .element-container {
+        margin-bottom: 0 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -259,16 +287,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Warning about auto-fill
-st.markdown("""
-<div class="warning-box">
-    <strong>ℹ️ Note:</strong> This simplified version uses only 10 mean features. 
-    The remaining 20 features (standard error and worst values) are auto-filled with zeros. 
-    This may slightly reduce prediction accuracy compared to the full 30-feature model.
-</div>
-""", unsafe_allow_html=True)
-
-# Input section
+# Input section (NO WARNING BOX - cleaner look)
 st.markdown('<div class="input-container">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">📋 Patient Features Input</div>', unsafe_allow_html=True)
 
@@ -382,24 +401,19 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         st.error("⚠️ Please fill in all required fields with non-zero values.")
     else:
         try:
-            # Prepare features array with 30 features
-            # First 10: Mean values (user input)
-            mean_features = [
-                radius, texture, perimeter, area, smoothness,
-                compactness, concavity, concave_points, symmetry, fractal
-            ]
-            
-            # Next 10: Standard Error values (auto-filled with zeros)
-            se_features = [0.0] * 10
-            
-            # Last 10: Worst values (auto-filled with zeros)
-            worst_features = [0.0] * 10
-            
-            # Combine all 30 features
-            all_features = mean_features + se_features + worst_features
-            
-            # Convert to numpy array
-            features = np.array([all_features])
+            # Prepare features array (EXACTLY 10 features - matching your new model)
+            features = np.array([[
+                radius,
+                texture,
+                perimeter,
+                area,
+                smoothness,
+                compactness,
+                concavity,
+                concave_points,
+                symmetry,
+                fractal
+            ]])
             
             # Scale features if scaler exists
             if scaler is not None:
@@ -408,10 +422,10 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
             # Make prediction
             prediction = model.predict(features)
             
-            # Extract probability
+            # Extract probability (handle different model output formats)
             probability = float(prediction[0]) if prediction.ndim == 1 else float(prediction[0][0])
             
-            # Determine result
+            # Determine result (threshold = 0.5)
             malignant = probability > 0.5
             confidence = probability if malignant else (1 - probability)
             confidence_percent = confidence * 100
@@ -462,7 +476,7 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         
         except Exception as e:
             st.error(f"❌ Prediction error: {str(e)}")
-            st.info("💡 Debug info: If you see a feature mismatch error, please check your model.h5 file.")
+            st.info("💡 Debug info: Please verify your model.h5 file is compatible with 10 features.")
 
 # Footer
 st.markdown("""
