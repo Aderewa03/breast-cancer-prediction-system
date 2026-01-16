@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for Pink Theme and remove white bar from warning
+# Custom CSS for Pink Theme
 st.markdown("""
 <style>
     /* Import Google Font */
@@ -57,7 +57,6 @@ st.markdown("""
         border-radius: 15px;
         box-shadow: 0 4px 20px rgba(233, 30, 99, 0.1);
         border: 2px solid #F8BBD0;
-        margin-top: 0rem;  /* remove extra top spacing */
         margin-bottom: 2rem;
     }
     
@@ -71,13 +70,25 @@ st.markdown("""
         border-bottom: 3px solid #E91E63;
     }
     
-    /* Number inputs */
+    /* Warning box */
+    .warning-box {
+        background: #FFF3E0;
+        border-left: 4px solid #FF9800;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        color: #E65100;
+        font-size: 0.9rem;
+    }
+    
+    /* Input labels */
     .stNumberInput label {
         color: #C2185B !important;
         font-weight: 500 !important;
         font-size: 0.95rem !important;
     }
     
+    /* Number inputs */
     .stNumberInput input {
         border: 2px solid #F8BBD0 !important;
         border-radius: 8px !important;
@@ -203,16 +214,14 @@ st.markdown("""
     
     /* Animation */
     @keyframes slideUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Remove Streamlit default white bar from info/warning */
-    .stAlert {
-        background-color: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        margin-bottom: 0 !important;
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
     
     /* Hide Streamlit branding */
@@ -225,6 +234,7 @@ st.markdown("""
 # Load model function
 @st.cache_resource
 def load_model():
+    """Load the pickled model and scaler"""
     try:
         with open("model.h5", "rb") as f:
             saved_data = pickle.load(f)
@@ -249,62 +259,219 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Warning note
-st.info("⚠️ Note: This simplified version uses only 10 mean features. The remaining 20 features (standard error and worst values) are auto-filled with zeros. This may slightly reduce prediction accuracy compared to the full 30-feature model.")
+# Warning about auto-fill
+st.markdown("""
+<div class="warning-box">
+    <strong>ℹ️ Note:</strong> This simplified version uses only 10 mean features. 
+    The remaining 20 features (standard error and worst values) are auto-filled with zeros. 
+    This may slightly reduce prediction accuracy compared to the full 30-feature model.
+</div>
+""", unsafe_allow_html=True)
 
 # Input section
 st.markdown('<div class="input-container">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">📋 Patient Features Input</div>', unsafe_allow_html=True)
 
-# Columns for inputs
+# Create two columns for inputs
 col1, col2 = st.columns(2)
+
 with col1:
-    radius = st.number_input("Mean Radius", 0.0, 50.0, 0.0, 0.01, help="Average distance from center to perimeter (6.0 - 28.0)")
-    perimeter = st.number_input("Mean Perimeter", 0.0, 250.0, 0.0, 0.1, help="Average perimeter of cell nucleus (40.0 - 190.0)")
-    smoothness = st.number_input("Mean Smoothness", 0.0, 0.3, 0.0, 0.001, format="%.4f", help="Local variation in radius lengths (0.05 - 0.16)")
-    concavity = st.number_input("Mean Concavity", 0.0, 0.5, 0.0, 0.001, format="%.4f", help="Severity of concave portions (0.0 - 0.43)")
-    symmetry = st.number_input("Mean Symmetry", 0.0, 0.5, 0.0, 0.001, format="%.4f", help="Symmetry of the cell (0.10 - 0.30)")
+    radius = st.number_input(
+        "Mean Radius",
+        min_value=0.0,
+        max_value=50.0,
+        value=0.0,
+        step=0.01,
+        help="Average distance from center to perimeter (6.0 - 28.0)"
+    )
+    
+    perimeter = st.number_input(
+        "Mean Perimeter",
+        min_value=0.0,
+        max_value=250.0,
+        value=0.0,
+        step=0.1,
+        help="Average perimeter of cell nucleus (40.0 - 190.0)"
+    )
+    
+    smoothness = st.number_input(
+        "Mean Smoothness",
+        min_value=0.0,
+        max_value=0.3,
+        value=0.0,
+        step=0.001,
+        format="%.4f",
+        help="Local variation in radius lengths (0.05 - 0.16)"
+    )
+    
+    concavity = st.number_input(
+        "Mean Concavity",
+        min_value=0.0,
+        max_value=0.5,
+        value=0.0,
+        step=0.001,
+        format="%.4f",
+        help="Severity of concave portions (0.0 - 0.43)"
+    )
+    
+    symmetry = st.number_input(
+        "Mean Symmetry",
+        min_value=0.0,
+        max_value=0.5,
+        value=0.0,
+        step=0.001,
+        format="%.4f",
+        help="Symmetry of the cell (0.10 - 0.30)"
+    )
+
 with col2:
-    texture = st.number_input("Mean Texture", 0.0, 50.0, 0.0, 0.01, help="Standard deviation of gray-scale values (9.0 - 40.0)")
-    area = st.number_input("Mean Area", 0.0, 3000.0, 0.0, 1.0, help="Average area of cell nucleus (140.0 - 2500.0)")
-    compactness = st.number_input("Mean Compactness", 0.0, 0.5, 0.0, 0.001, format="%.4f", help="(perimeter² / area - 1.0) (0.02 - 0.35)")
-    concave_points = st.number_input("Mean Concave Points", 0.0, 0.3, 0.0, 0.001, format="%.4f", help="Number of concave portions (0.0 - 0.20)")
-    fractal = st.number_input("Mean Fractal Dimension", 0.0, 0.2, 0.0, 0.0001, format="%.5f", help="Coastline approximation - 1 (0.05 - 0.10)")
+    texture = st.number_input(
+        "Mean Texture",
+        min_value=0.0,
+        max_value=50.0,
+        value=0.0,
+        step=0.01,
+        help="Standard deviation of gray-scale values (9.0 - 40.0)"
+    )
+    
+    area = st.number_input(
+        "Mean Area",
+        min_value=0.0,
+        max_value=3000.0,
+        value=0.0,
+        step=1.0,
+        help="Average area of cell nucleus (140.0 - 2500.0)"
+    )
+    
+    compactness = st.number_input(
+        "Mean Compactness",
+        min_value=0.0,
+        max_value=0.5,
+        value=0.0,
+        step=0.001,
+        format="%.4f",
+        help="(perimeter² / area - 1.0) (0.02 - 0.35)"
+    )
+    
+    concave_points = st.number_input(
+        "Mean Concave Points",
+        min_value=0.0,
+        max_value=0.3,
+        value=0.0,
+        step=0.001,
+        format="%.4f",
+        help="Number of concave portions (0.0 - 0.20)"
+    )
+    
+    fractal = st.number_input(
+        "Mean Fractal Dimension",
+        min_value=0.0,
+        max_value=0.2,
+        value=0.0,
+        step=0.0001,
+        format="%.5f",
+        help="Coastline approximation - 1 (0.05 - 0.10)"
+    )
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Predict button
 if st.button("🔬 PREDICT DIAGNOSIS"):
+    # Validate inputs
     if radius == 0 or texture == 0 or perimeter == 0 or area == 0:
         st.error("⚠️ Please fill in all required fields with non-zero values.")
     else:
         try:
-            features = np.array([[radius, texture, perimeter, area, smoothness, compactness, concavity, concave_points, symmetry, fractal]])
+            # Prepare features array with 30 features
+            # First 10: Mean values (user input)
+            mean_features = [
+                radius, texture, perimeter, area, smoothness,
+                compactness, concavity, concave_points, symmetry, fractal
+            ]
+            
+            # Next 10: Standard Error values (auto-filled with zeros)
+            se_features = [0.0] * 10
+            
+            # Last 10: Worst values (auto-filled with zeros)
+            worst_features = [0.0] * 10
+            
+            # Combine all 30 features
+            all_features = mean_features + se_features + worst_features
+            
+            # Convert to numpy array
+            features = np.array([all_features])
+            
+            # Scale features if scaler exists
             if scaler is not None:
                 features = scaler.transform(features)
+            
+            # Make prediction
             prediction = model.predict(features)
+            
+            # Extract probability
             probability = float(prediction[0]) if prediction.ndim == 1 else float(prediction[0][0])
+            
+            # Determine result
             malignant = probability > 0.5
-            confidence_percent = (probability if malignant else 1 - probability) * 100
-
+            confidence = probability if malignant else (1 - probability)
+            confidence_percent = confidence * 100
+            
+            # Display result
             if malignant:
                 st.markdown(f"""
                 <div class="result-card malignant-card">
-                    <div class="result-badge malignant-badge">⚠️ MALIGNANT</div>
-                    <div class="confidence-text">Confidence: {confidence_percent:.1f}%</div>
-                </div>""", unsafe_allow_html=True)
+                    <div class="result-badge malignant-badge">
+                        ⚠️ MALIGNANT
+                    </div>
+                    <div class="confidence-text">
+                        Confidence: {confidence_percent:.1f}%
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: {confidence_percent}%;">
+                            {confidence_percent:.1f}%
+                        </div>
+                    </div>
+                    <div class="recommendation">
+                        <strong>⚕️ Recommendation:</strong> This result indicates potential malignancy. 
+                        Please consult with a healthcare professional immediately for further diagnostic 
+                        testing and evaluation. Early detection is crucial for effective treatment.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class="result-card benign-card">
-                    <div class="result-badge benign-badge">✓ BENIGN</div>
-                    <div class="confidence-text">Confidence: {confidence_percent:.1f}%</div>
-                </div>""", unsafe_allow_html=True)
+                    <div class="result-badge benign-badge">
+                        ✓ BENIGN
+                    </div>
+                    <div class="confidence-text">
+                        Confidence: {confidence_percent:.1f}%
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: {confidence_percent}%; background: linear-gradient(90deg, #4CAF50 0%, #388E3C 100%);">
+                            {confidence_percent:.1f}%
+                        </div>
+                    </div>
+                    <div class="recommendation">
+                        <strong>✅ Recommendation:</strong> This result suggests the tumor is benign. 
+                        However, continue with regular check-ups and follow your doctor's advice for 
+                        ongoing monitoring and health maintenance.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
         except Exception as e:
             st.error(f"❌ Prediction error: {str(e)}")
+            st.info("💡 Debug info: If you see a feature mismatch error, please check your model.h5 file.")
 
 # Footer
 st.markdown("""
 <div class="footer">
-    <p><strong>⚠️ Medical Disclaimer:</strong> This system is for educational and informational purposes only. It is NOT a substitute for professional medical advice, diagnosis, or treatment.</p>
+    <p><strong>⚠️ Medical Disclaimer:</strong> This system is for educational and informational purposes only. 
+    It is NOT a substitute for professional medical advice, diagnosis, or treatment. 
+    Always seek the advice of qualified healthcare providers with any questions regarding medical conditions.</p>
+    <p style="margin-top: 1rem; color: #E91E63; font-weight: 600;">
+    🎗️ Supporting Breast Cancer Awareness • Early Detection Saves Lives
+    </p>
 </div>
 """, unsafe_allow_html=True)
