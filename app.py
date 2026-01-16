@@ -58,6 +58,7 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(233, 30, 99, 0.1);
         border: 2px solid #F8BBD0;
         margin-bottom: 2rem;
+        margin-top: 0 !important;
     }
     
     /* Section headers */
@@ -76,7 +77,7 @@ st.markdown("""
         border-left: 4px solid #FF9800;
         padding: 1rem;
         border-radius: 8px;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
         color: #E65100;
         font-size: 0.9rem;
     }
@@ -224,7 +225,7 @@ st.markdown("""
         }
     }
     
-    /* Hide Streamlit branding and menu - UPDATED SECTION */
+    /* Hide Streamlit branding and menu */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -251,6 +252,20 @@ st.markdown("""
     /* Adjust spacing */
     .block-container {
         padding-top: 1rem !important;
+    }
+    
+    /* Remove white space between sections - NEW */
+    .stMarkdown + .stMarkdown {
+        margin-top: 0 !important;
+    }
+    
+    div[data-testid="stVerticalBlock"] > div {
+        gap: 0.5rem !important;
+    }
+    
+    /* Tighten element spacing */
+    .element-container {
+        margin-bottom: 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
