@@ -287,6 +287,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Input section (NO WARNING BOX - cleaner look)
 st.markdown('<div class="input-container">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">📋 Patient Features Input</div>', unsafe_allow_html=True)
 
@@ -400,7 +401,7 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         st.error("⚠️ Please fill in all required fields with non-zero values.")
     else:
         try:
-            # Prepare features array (10 features)
+            # Prepare features array (EXACTLY 10 features - matching your new model)
             features = np.array([[
                 radius,
                 texture,
@@ -414,16 +415,17 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
                 fractal
             ]])
             
-            # Skip scaling - scaler expects 30 features but model needs 10
-            # Model trained on unscaled data
+            # Scale features if scaler exists
+            if scaler is not None:
+                features = scaler.transform(features)
             
-            # Make prediction directly
+            # Make prediction
             prediction = model.predict(features)
             
-            # Extract probability
+            # Extract probability (handle different model output formats)
             probability = float(prediction[0]) if prediction.ndim == 1 else float(prediction[0][0])
             
-            # Determine result
+            # Determine result (threshold = 0.5)
             malignant = probability > 0.5
             confidence = probability if malignant else (1 - probability)
             confidence_percent = confidence * 100
@@ -474,7 +476,7 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         
         except Exception as e:
             st.error(f"❌ Prediction error: {str(e)}")
-            st.info("💡 Debug info: Model expects unscaled 10-feature input.")
+            st.info("💡 Debug info: Please verify your model.h5 file is compatible with 10 features.")
 
 # Footer
 st.markdown("""
