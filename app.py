@@ -33,7 +33,7 @@ st.markdown("""
         border-radius: 15px;
         text-align: center;
         color: white;
-        margin-bottom: 1rem;
+        margin-bottom: 2rem;
         box-shadow: 0 8px 32px rgba(233, 30, 99, 0.3);
     }
     
@@ -249,7 +249,7 @@ st.markdown("""
     }
     
     div[data-testid="stVerticalBlock"] > div {
-        gap: 0rem !important;
+        gap: 0.5rem !important;
     }
     
     /* Tighten element spacing */
@@ -287,7 +287,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Input section (NO WARNING - CLEAN)
 st.markdown('<div class="input-container">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">📋 Patient Features Input</div>', unsafe_allow_html=True)
 
@@ -401,7 +400,7 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         st.error("⚠️ Please fill in all required fields with non-zero values.")
     else:
         try:
-            # Prepare features array (EXACTLY 10 features)
+            # Prepare features array (EXACTLY 10 features - matching your new model)
             features = np.array([[
                 radius,
                 texture,
@@ -422,10 +421,10 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
             # Make prediction
             prediction = model.predict(features)
             
-            # Extract probability
+            # Extract probability (handle different model output formats)
             probability = float(prediction[0]) if prediction.ndim == 1 else float(prediction[0][0])
             
-            # Determine result
+            # Determine result (threshold = 0.5)
             malignant = probability > 0.5
             confidence = probability if malignant else (1 - probability)
             confidence_percent = confidence * 100
