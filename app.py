@@ -70,6 +70,17 @@ st.markdown("""
         border-bottom: 3px solid #E91E63;
     }
     
+    /* Warning box */
+    .warning-box {
+        background: #FFF3E0;
+        border-left: 4px solid #FF9800;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        color: #E65100;
+        font-size: 0.9rem;
+    }
+    
     /* Input labels */
     .stNumberInput label {
         color: #C2185B !important;
@@ -248,6 +259,15 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Warning about auto-fill
+st.markdown("""
+<div class="warning-box">
+    <strong>ℹ️ Note:</strong> This simplified version uses only 10 mean features. 
+    The remaining 20 features (standard error and worst values) are auto-filled with zeros. 
+    This may slightly reduce prediction accuracy compared to the full 30-feature model.
+</div>
+""", unsafe_allow_html=True)
+
 # Input section
 st.markdown('<div class="input-container">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">📋 Patient Features Input</div>', unsafe_allow_html=True)
@@ -362,11 +382,24 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         st.error("⚠️ Please fill in all required fields with non-zero values.")
     else:
         try:
-            # Prepare features array
-            features = np.array([[
+            # Prepare features array with 30 features
+            # First 10: Mean values (user input)
+            mean_features = [
                 radius, texture, perimeter, area, smoothness,
                 compactness, concavity, concave_points, symmetry, fractal
-            ]])
+            ]
+            
+            # Next 10: Standard Error values (auto-filled with zeros)
+            se_features = [0.0] * 10
+            
+            # Last 10: Worst values (auto-filled with zeros)
+            worst_features = [0.0] * 10
+            
+            # Combine all 30 features
+            all_features = mean_features + se_features + worst_features
+            
+            # Convert to numpy array
+            features = np.array([all_features])
             
             # Scale features if scaler exists
             if scaler is not None:
@@ -429,6 +462,7 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
         
         except Exception as e:
             st.error(f"❌ Prediction error: {str(e)}")
+            st.info("💡 Debug info: If you see a feature mismatch error, please check your model.h5 file.")
 
 # Footer
 st.markdown("""
