@@ -224,10 +224,34 @@ st.markdown("""
         }
     }
     
-    /* Hide Streamlit branding */
+    /* Hide Streamlit branding and menu - UPDATED SECTION */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    
+    /* Hide hamburger menu completely */
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    
+    [data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
+    [data-testid="stDecoration"] {
+        display: none !important;
+    }
+    
+    /* Remove top space from hidden header */
+    .stApp > header {
+        background-color: transparent !important;
+        height: 0 !important;
+    }
+    
+    /* Adjust spacing */
+    .block-container {
+        padding-top: 1rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
