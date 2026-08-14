@@ -419,15 +419,14 @@ if st.button("🔬 PREDICT DIAGNOSIS"):
             if scaler is not None:
                 features = scaler.transform(features)
             
-            # Make prediction
-            prediction = model.predict(features)
-            
-            # Extract probability (handle different model output formats)
-            probability = float(prediction[0]) if prediction.ndim == 1 else float(prediction[0][0])
+            # Make prediction - get real probabilities.
+            # NOTE: in scikit-learn's dataset, class 0 = malignant, class 1 = benign
+            proba = model.predict_proba(features)[0]   # [P(malignant), P(benign)]
+            malignant_prob = proba[0]
             
             # Determine result (threshold = 0.5)
-            malignant = probability > 0.5
-            confidence = probability if malignant else (1 - probability)
+            malignant = malignant_prob > 0.5
+            confidence = malignant_prob if malignant else (1 - malignant_prob)
             confidence_percent = confidence * 100
             
             # Display result
